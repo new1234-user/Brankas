@@ -1,0 +1,23 @@
+{% extends 'layout.html' %} 
+
+{% block title %}Daftar - Brankas Online{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="card">
+        <h2>Buat Akun Baru</h2>
+        <p class="text-center">Mulai amankan data Anda hari ini</p>
+        
+        <form method="post">
+            {% csrf_token %} 
+            {{ form.as_p }} 
+            
+            <button type="submit">Daftar Sekarang</button>
+        </form>
+
+        <div class="auth-link">
+            Sudah punya akun? <a href="{% url 'login' %}">Login di sini</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

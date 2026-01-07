@@ -1,0 +1,99 @@
+{% extends 'layout.html' %}
+
+{% block title %}Arsip Lengkap Brankas{% endblock %}
+
+{% block content %}
+<div>
+    <h2 class="dashboard-title">🗄️ Arsip Lengkap Brankas</h2>
+    <p>Menampilkan seluruh riwayat penyimpanan data Anda.</p>
+
+    <div class="dashboard-card">
+        
+        {% if messages %}
+            {% for message in messages %}
+                <div style="padding: 10px; margin-bottom: 10px; background-color: {% if message.tags == 'error' %}#f8d7da{% else %}#d4edda{% endif %}; color: {% if message.tags == 'error' %}#721c24{% else %}#155724{% endif %}; border-radius: 5px;">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        {% if files %}
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="background-color: #f8f9fa; border-bottom: 2px solid #dee2e6;">
+                            <th style="padding: 12px; text-align: left;">Judul</th>
+                            <th style="padding: 12px; text-align: left;">Catatan</th>
+                            <th style="padding: 12px; text-align: left;">Aksi</th>
+                            <th style="padding: 12px; text-align: left;">Waktu</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in files %}
+                        <tr style="border-bottom: 1px solid #dee2e6;">
+                            <td style="padding: 12px;"><strong>{{ item.judul }}</strong></td>
+                            
+                            <td style="padding: 12px; max-width: 250px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                {{ item.catatan }}
+                            </td>
+                            
+                            <td style="padding: 12px;">
+                                <a href="{% url 'download_brankas' item.id %}" style="text-decoration: none;">
+                                    <button style="background-color: #17a2b8; color: white; border: none; padding: 5px 10px; cursor: pointer; margin-left: 5px; border-radius: 4px;">
+                                        ⬇️ Unduh
+                                    </button>
+                                </a>
+
+                                <button onclick="bukaModal('{{ item.id }}', '{{ item.judul | escapejs }}')" 
+                                        style="background-color: #dc3545; color: white; border: none; padding: 5px 10px; cursor: pointer; margin-left: 5px; border-radius: 4px;">
+                                    🗑️ Hapus
+                                </button>
+                            </td>
+                            <td style="padding: 12px;">{{ item.waktu_dibuat|date:"d M Y H:i" }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p class="text-center" style="margin-top: 20px;">
+                <em>Belum ada data sama sekali.</em>
+            </p>
+        {% endif %}
+        
+        <div style="margin-top: 20px; text-align: center;">
+            <a href="{% url 'dashboard' %}" style="text-decoration: none; color: #007bff;">&larr; Kembali ke Dashboard</a>
+        </div>
+    </div>
+</div>
+
+<div id="modalHapus" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5);">
+    <div style="background-color: #fefefe; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 400px; border-radius: 8px; text-align: center;">
+        <h3 style="color: #dc3545;">⚠️ Konfirmasi Hapus</h3>
+        <p>Anda akan menghapus: <strong id="judulItem"></strong></p>
+        <p style="font-size: 0.9em; color: #666;">Masukkan password akun Anda untuk konfirmasi.</p>
+
+        <form id="formDelete" method="post" action="">
+            {% csrf_token %}
+            <input type="password" name="password_confirm" placeholder="Ketik Password..." required autofocus
+                   style="width: 80%; padding: 8px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 4px;">
+            <div style="display: flex; justify-content: center; gap: 10px;">
+                <button type="button" onclick="tutupModal()" style="background-color: #6c757d; color: white; border: none; padding: 8px 16px; cursor: pointer; border-radius: 4px;">Batal</button>
+                <button type="submit" style="background-color: #dc3545; color: white; border: none; padding: 8px 16px; cursor: pointer; border-radius: 4px;">Hapus Permanen</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function bukaModal(id, judul) {
+        document.getElementById('modalHapus').style.display = 'block';
+        document.getElementById('judulItem').innerText = judul;
+        document.getElementById('formDelete').action = "/delete/" + id + "/";
+    }
+
+    function tutupModal() {
+        document.getElementById('modalHapus').style.display = 'none';
+    }
+</script>
+{% endblock %}

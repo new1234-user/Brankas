@@ -1,0 +1,31 @@
+{% extends 'layout.html' %} 
+
+{% block title %}Login{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="card">
+        <h2>Login</h2>
+        <p class="text-center">Silakan masuk ke akun Anda</p>
+        
+        {% if messages %}
+            <div style="margin-bottom: 20px;">
+                {% for message in messages %}
+                    <div style="padding: 10px; background-color: #ffebee; color: #c62828; border: 1px solid #ef9a9a; border-radius: 4px; font-size: 0.9rem;">
+                        ⚠️ {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        <form method="post">
+            {% csrf_token %} 
+            {{ form.as_p }} 
+            <button type="submit">Masuk</button>
+        </form>
+
+        <div class="auth-link">
+            Belum punya akun? <a href="{% url 'register' %}">Daftar</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

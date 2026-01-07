@@ -1,0 +1,127 @@
+{% extends 'layout.html' %}
+
+{% block title %}Dashboard Saya{% endblock %}
+
+{% block content %}
+<div>
+    <h2 class="dashboard-title">Halo, {{ user.username }}! 👋</h2>
+    <p>Selamat datang di area penyimpanan aman Anda.</p>
+    
+    <div class="dashboard-card">
+        <h3>📂 Simpan Data Baru</h3>
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit" style="width: auto; padding-left: 2rem; padding-right: 2rem;">
+                Simpan ke Brankas
+            </button>
+        </form>
+    </div>
+    <div class="dashboard-card">
+        <h3>📋 Isi Brankas Anda</h3>
+        
+        {% if messages %}
+            {% for message in messages %}
+                <div style="padding: 10px; margin-bottom: 10px; background-color: {% if message.tags == 'error' %}#f8d7da{% else %}#d4edda{% endif %}; color: {% if message.tags == 'error' %}#721c24{% else %}#155724{% endif %}; border-radius: 5px; border: 1px solid {% if message.tags == 'error' %}#f5c6cb{% else %}#c3e6cb{% endif %};">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        {% if files %}
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Judul</th>
+                            <th>Catatan</th>
+                            <th>Aksi</th>
+                            <th>Waktu</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in files %}
+                        <tr>
+                            <td><strong>{{ item.judul }}</strong></td>
+                            
+                            <td style="max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                {{ item.catatan }}
+                            </td>
+                            
+                            <td>
+                                <a href="{% url 'download_brankas' item.id %}" style="text-decoration: none;">
+                                    <button style="background-color: #17a2b8; color: white; border: none; padding: 5px 10px; cursor: pointer; margin-left: 5px; border-radius: 4px;">
+                                        ⬇️ Unduh
+                                    </button>
+                                </a>
+
+                                <button onclick="bukaModal('{{ item.id }}', '{{ item.judul|escapejs }}')" 
+                                        style="background-color: #dc3545; color: white; border: none; padding: 5px 10px; cursor: pointer; margin-left: 5px; border-radius: 4px;">
+                                    🗑️ Hapus
+                                </button>
+                            </td>
+                            <td>{{ item.waktu_dibuat|date:"d M Y H:i" }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p class="text-center" style="margin-top: 20px;">
+                <em>Brankas Anda masih kosong. Silakan upload data baru pada formulir di atas.</em>
+            </p>
+        {% endif %}
+    </div>
+
+</div>
+
+<div id="modalHapus" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5);">
+    
+    <div style="background-color: #fefefe; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 400px; border-radius: 8px; text-align: center;">
+        
+        <h3 style="color: #dc3545;">⚠️ Konfirmasi Hapus</h3>
+        <p>Anda akan menghapus: <strong id="judulItem"></strong></p>
+        <p style="font-size: 0.9em; color: #666;">Masukkan password akun Anda untuk konfirmasi.</p>
+
+        <form id="formDelete" method="post" action="">
+            {% csrf_token %}
+            
+            <input type="password" name="password_confirm" placeholder="Ketik Password..." required autofocus
+                   style="width: 80%; padding: 8px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 4px;">
+            
+            <div style="display: flex; justify-content: center; gap: 10px;">
+                <button type="button" onclick="tutupModal()" 
+                        style="background-color: #6c757d; color: white; border: none; padding: 8px 16px; cursor: pointer; border-radius: 4px;">
+                    Batal
+                </button>
+                
+                <button type="submit" 
+                        style="background-color: #dc3545; color: white; border: none; padding: 8px 16px; cursor: pointer; border-radius: 4px;">
+                    Hapus Permanen
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function bukaModal(id, judul) {
+        document.getElementById('modalHapus').style.display = 'block';
+        document.getElementById('judulItem').innerText = judul;
+        // Update Action URL form
+        document.getElementById('formDelete').action = "/delete/" + id + "/";
+    }
+
+    function tutupModal() {
+        document.getElementById('modalHapus').style.display = 'none';
+    }
+
+    window.onclick = function(event) {
+        var modal = document.getElementById('modalHapus');
+        if (event.target == modal) {
+            modal.style.display = "none";
+        }
+    }
+</script>
+
+{% endblock %}

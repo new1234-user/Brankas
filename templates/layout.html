@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Brankas Online{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+    <nav>
+        <span href="/" class="brand">🛡️ BrankasOnline</span>
+        
+        <div>
+            {% if user.is_authenticated %}
+                <span>Halo, {{ user.username }}</span>
+                <a href="{% url 'dashboard' %}">Dashboard</a>
+                <a href="{% url 'brankas_list' %}">🗄️ Semua Brankas</a>
+                <a href="#" onclick="konfirmasiLogout(event)" style="color: #dc3545;">Logout</a>
+            {% else %}
+                <a href="{% url 'login' %}">Login</a>
+                <a href="{% url 'register' %}">Daftar</a>
+            {% endif %}
+        </div>
+    </nav>
+    
+    <main>
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <div id="modalLogout" style="display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5);">
+        
+        <div style="background-color: #fefefe; margin: 15% auto; padding: 25px; border: 1px solid #888; width: 80%; max-width: 400px; border-radius: 10px; text-align: center; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+            
+            <h3 style="color: #555; margin-bottom: 10px;">🚪 Konfirmasi Keluar</h3>
+            <p style="color: #666; margin-bottom: 25px;">Apakah Anda yakin ingin mengakhiri sesi ini?</p>
+
+            <div style="display: flex; justify-content: center; gap: 15px;">
+                <button onclick="tutupModalLogout()" 
+                        style="padding: 10px 20px; background-color: #6c757d; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                    Batal
+                </button>
+                
+                <a href="{% url 'logout' %}" 
+                   style="padding: 10px 20px; background-color: #dc3545; color: white; text-decoration: none; border-radius: 5px; display: inline-block;">
+                   Ya, Keluar
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function konfirmasiLogout(event) {
+            event.preventDefault();
+            document.getElementById('modalLogout').style.display = 'block';
+        }
+        function tutupModalLogout() {
+            document.getElementById('modalLogout').style.display = 'none';
+        }
+        window.onclick = function(event) {
+            var modalLogout = document.getElementById('modalLogout');        
+            if (event.target == modalLogout) {
+                modalLogout.style.display = "none";
+            }
+            var modalHapus = document.getElementById('modalHapus');
+            if (modalHapus && event.target == modalHapus) {
+                modalHapus.style.display = "none";
+            }
+        }
+    </script>
+    
+    <script src="{% static 'js/main.js' %}"></script>
+</body>
+</html>
