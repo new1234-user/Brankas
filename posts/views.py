@@ -1,6 +1,7 @@
 import math
 import time
 import os
+import logging
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login, logout
@@ -15,6 +16,7 @@ from django.views.decorators.cache import never_cache
 from .models import Brankas
 from .forms import BrankasForm
 
+logger = logging.getLogger(__name__)
 def posts_list(request):
     return render(request, 'posts/posts_list.html')
 
@@ -53,14 +55,15 @@ def login_view(request):
             except ValueError:
                 cache.set(fail_key, 1, 86400)
                 fails = 1
+            logger.warning(f"Gagal login ke-{fails} untuk user {username}")
         if fails >= 5:
             timeout = 15*60
             waktu_bebas = time.time() + timeout
             cache.set(block_key, waktu_bebas, timeout)
+            logger.warning(f"User {username} gagal 5x")
             messages.error(request, "Gagal 5x. Akun di kunci selama 15 menit")
         else:
-            sisa = 5 - fails
-            messages.error(request, f"Username atau Password Salah. Sisa percobaan adalah : {sisa}")
+            messages.error(request, f"Username atau Password Salah.")
     
     else :
         form = AuthenticationForm()
@@ -95,9 +98,7 @@ def dashboard_view(request):
 
 @login_required(login_url='login')
 def download_brankas(request, brankas_id):
-    item = get_object_or_404(Brankas, pk=brankas_id)
-    if item.user != request.user:
-        raise PermissionDenied("Akses ditolak")
+    item = get_object_or_404(Brankas, pk=brankas_id, user=request.user)
     if item.file_rahasia:
         try:
             ext = os.path.splitext(item.file_rahasia.name)[1]
@@ -115,20 +116,21 @@ def download_brankas(request, brankas_id):
         response['Content-Disposition'] = f'attachment; filename="{safe_filename}"'
         return response
     else :
+        logger.warning(f"Suspicious Access 2 {request.user}")
         messages.error(request, "Item tidak ada")
         return redirect("dashboard")
 
 @login_required(login_url='login')
 def delete_brankas(request, brankas_id):
     if request.method == 'POST':
-        item = get_object_or_404(Brankas, pk=brankas_id)
-        if item.user != request.user:
-            raise PermissionDenied 
+        item = get_object_or_404(Brankas, pk=brankas_id, user=request.user)
         password_input = request.POST.get("password_confirm")
         if request.user.check_password(password_input):
             item.delete()
+            logger.warning(f"{request.user} menghapus file ID {brankas_id}")
             messages.success(request, "Data berhasil dihapus")
         else:
+            logger.warning(f"{request.user} gagal menghapus file ID {brankas_id}")
             messages.error(request, "Password salah")
     return redirect("dashboard")
 

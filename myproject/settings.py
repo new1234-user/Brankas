@@ -31,8 +31,37 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-CSRF_COOKIE_SECURE = True  
-SESSION_COOKIE_SECURE = True
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+SESSION_COOKIE_AGE = 900 
+SESSION_SAVE_EVERY_REQUEST = True
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '[%(asctime)s] %(levelname)s: %(message)s',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+        'file': { 
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(BASE_DIR,'security.log'),
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        '': { 
+            'handlers': ['console', 'file'],
+            'level': 'INFO', 
+            'propagate': True,
+        },
+    },
+}
 
 ROOT_URLCONF = 'myproject.urls'
 
