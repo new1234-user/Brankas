@@ -116,7 +116,6 @@ def download_brankas(request, brankas_id):
         response['Content-Disposition'] = f'attachment; filename="{safe_filename}"'
         return response
     else :
-        logger.warning(f"Suspicious Access 2 {request.user}")
         messages.error(request, "Item tidak ada")
         return redirect("dashboard")
 

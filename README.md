@@ -1,4 +1,3 @@
-
 # Brankas Pribadi (Django)
 ## Cara Menjalankan Aplikasi
 1) Masuk ke folder project
