@@ -3,25 +3,25 @@
 1) Masuk ke folder project
 Buka terminal pada folder yang berisi file `manage.py`.
 2) Buat & aktifkan Virtual Environment
-**Windows**
+3) Windows
 python -m venv .venv
 .venv\Scripts\activate
-**Linux / Mac**
+4) Linux / Mac
 python -m venv .venv
 source .venv/bin/activate
-3) Install dependensi
+5) Install dependensi
 python -m pip install -r requirements.txt
-4) Buat file .env
+6) Buat file .env
 Buat file bernama .env di root project (selevel manage.py), contoh isi:
 DJANGO_SECRET_KEY=isi_dengan_secret_key_random
 DJANGO_DEBUG=1
 DJANGO_ALLOWED_HOSTS=127.0.0.1,localhost
-5) Siapkan database (migrations)
+7) Siapkan database (migrations)
 python manage.py makemigrations
 python manage.py migrate
-6) Jalankan server
+8) Jalankan server
 python manage.py runserver
-7) Akses aplikasi di browser
+9) Akses aplikasi di browser
 Login: http://127.0.0.1:8000/login/
 ---
 ## Fitur Utama
