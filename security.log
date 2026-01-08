@@ -23,3 +23,5 @@
 [2026-01-08 13:06:46,432] WARNING: aldo.dwi menghapus file ID 35
 [2026-01-08 13:26:15,615] WARNING: Not Found: /downloads/36/
 [2026-01-08 13:32:35,116] WARNING: Not Found: /.well-known/appspecific/com.chrome.devtools.json
+[2026-01-08 15:41:04,227] INFO: Watching for file changes with StatReloader
+[2026-01-08 15:41:05,860] WARNING: Not Found: /favicon.ico

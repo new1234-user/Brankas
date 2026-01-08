@@ -4,25 +4,19 @@
 Buka terminal pada folder yang berisi file `manage.py`.
 2) Buat & aktifkan Virtual Environment
 3) Windows
-python -m venv .venv
-.venv\Scripts\activate
+* python -m venv .venv
+* .venv\Scripts\activate
 4) Linux / Mac
-python -m venv .venv
-source .venv/bin/activate
+* python -m venv .venv
+* source .venv/bin/activate
 5) Install dependensi
-python -m pip install -r requirements.txt
-6) Buat file .env
-Buat file bernama .env di root project (selevel manage.py), contoh isi:
-DJANGO_SECRET_KEY=isi_dengan_secret_key_random
-DJANGO_DEBUG=1
-DJANGO_ALLOWED_HOSTS=127.0.0.1,localhost
-7) Siapkan database (migrations)
-python manage.py makemigrations
-python manage.py migrate
-8) Jalankan server
-python manage.py runserver
-9) Akses aplikasi di browser
-Login: http://127.0.0.1:8000/login/
+* python -m pip install -r requirements.txt
+6) Siapkan database (migrations)
+*python manage.py migrate
+7) Jalankan server
+*python manage.py runserver
+8) Akses aplikasi di browser
+*Login: http://127.0.0.1:8000/login/
 ---
 ## Fitur Utama
 * Login & Register: Sistem pendaftaran dan masuk akun pengguna.
@@ -32,47 +26,63 @@ Login: http://127.0.0.1:8000/login/
 * Delete: Menghapus file secara permanen dengan konfirmasi password.
 ---
 ## Aspek Keamanan (Security)
-Aplikasi ini telah menerapkan 8 standar keamanan wajib untuk memitigasi risiko serangan web umum:
-1. Proteksi Brute Force (Account Lockout)
-Sistem menerapkan mekanisme Rate Limiting pada halaman login.
-Mekanisme: Jika pengguna gagal login 5 kali berturut-turut, akun akan terkunci otomatis selama 15 menit.
-Tujuan: Mencegah peretas menebak password secara paksa menggunakan software otomatis.
+Aplikasi ini telah menerapkan standar keamanan wajib untuk memitigasi risiko serangan web umum:
+1) Password Hashing (Tidak Ada Plaintext)
+Mekanisme: Registrasi dan login memakai form bawaan Django (UserCreationForm dan AuthenticationForm) yang menyimpan password dalam bentuk hash (PBKDF2/HMAC-SHA256 dan kompatibel Argon2), bukan teks asli.
+Tujuan: Jika database bocor, password tidak bisa dibaca langsung.
 
-2. Sanitasi File & Anti-Webshell (UUID)
-Mencegah celah keamanan pada fitur upload file.
-Anti-Hack Renaming: Nama file yang diupload otomatis diubah menjadi kode acak (UUID4) oleh sistem.
-Validasi Ketat: Sistem menolak file selain dokumen/gambar dan membatasi ukuran maksimal 5MB.
-Tujuan: Mencegah hacker menimpa file sistem (Overwriting), menyisipkan script berbahaya (Webshell), atau melumpuhkan server (DoS).
+2) Proteksi CSRF (Cross-Site Request Forgery)
+Mekanisme: Semua form POST (login, upload, delete) dilindungi CSRF Middleware dan token {% csrf_token %}. Request tanpa token valid akan ditolak.
+Tujuan: Mencegah aksi berbahaya dipicu dari situs pihak ketiga tanpa izin user.
 
-3. Privasi Data (Anti-IDOR)
-Mencegah serangan Insecure Direct Object References.
-Mekanisme: Validasi kepemilikan dilakukan di backend. Pengguna hanya diizinkan melihat, mengunduh, dan menghapus file miliknya sendiri.
-Tujuan: Mencegah Pengguna A mengakses data rahasia milik Pengguna B meskipun mengetahui URL/ID file tersebut.
+3) Input Validation (Anti SQL Injection & XSS)
+Mekanisme: Validasi dilakukan lewat constraint pada Model (tipe data, panjang karakter) dan Django ORM (parameterized query). Payload seperti SQL injection dan <script>...</script> tidak dieksekusi dan diperlakukan sebagai teks.
+Tujuan: Mencegah manipulasi query database (SQLi) dan eksekusi script berbahaya (XSS).
 
-4. Manajemen Rahasia (No Hardcoded Secrets)
-Pemisahan konfigurasi sensitif dari kode program.
-Mekanisme: Secret Key dan pengaturan Debug disimpan dalam file .env yang tidak diikutsertakan dalam repositori publik.
-Tujuan: Mencegah kebocoran kredensial aplikasi jika kode sumber (source code) jatuh ke tangan yang salah.
+4) File Upload Sanitization (Whitelist Ekstensi + Batas Ukuran)
+Mekanisme: Upload file dibatasi dengan whitelist ekstensi (dokumen/gambar) dan ukuran maksimal 5MB melalui validator pada FileField. File di luar ketentuan (misalnya .exe) ditolak.
+Tujuan: Mencegah upload malware/webshell dan mengurangi risiko DoS lewat file besar.
 
-5. Konfirmasi Hapus (Sudo Mode)
-Verifikasi ganda untuk tindakan destruktif.
-Mekanisme: Pengguna wajib memasukkan password akun saat ingin menghapus file.
-Tujuan: Mencegah penghapusan data secara tidak sengaja atau jika sesi browser pengguna sedang dibajak orang lain (Session Hijacking fisik).
+5) Sanitasi Nama File (Anti Webshell / Overwrite)
+Mekanisme: Nama file yang diunggah tidak dipakai apa adanya, melainkan diubah menjadi nama aman/unik (misal berbasis UUID/random) agar tidak bisa menimpa file sistem atau “menyisipkan” nama berbahaya.
+Tujuan: Mencegah overwriting file, path trick, dan mempersulit penyisipan webshell.
 
-6. Proteksi CSRF (Cross-Site Request Forgery)
-Melindungi formulir dari manipulasi eksternal.
-Mekanisme: Setiap form (Login, Upload, Delete) dilindungi oleh token unik (CSRF Token) yang divalidasi server.
-Tujuan: Mencegah penyerang memaksa pengguna melakukan aksi (seperti hapus data) tanpa sepengetahuan pengguna melalui link jebakan.
+6) Privasi Data & Isolasi (Anti-IDOR / Object-Level Authorization)
+Mekanisme: Data dashboard difilter berdasarkan request.user, sehingga user hanya melihat file miliknya. Saat akses detail/download/delete, sistem memverifikasi kepemilikan objek di backend. Akses file milik user lain diblok (umumnya dikembalikan 404 agar tidak bisa dienumerasi).
+Tujuan: Mencegah user A mengakses file user B walaupun tahu URL/ID.
 
-7. Password Hashing (Tidak Ada Plaintext)
-Penyimpanan kredensial yang aman.
-Mekanisme: Password pengguna tidak disimpan dalam teks asli, melainkan di-hash menggunakan algoritma PBKDF2/Argon2 (SHA256).
-Tujuan: Menjaga keamanan akun pengguna meskipun database berhasil dicuri oleh peretas.
+7) Secure Download
+Mekanisme: Sebelum file dikirim ke client, sistem melakukan pengecekan hak akses (owner check) secara real-time. Jika tidak berhak, request ditolak.
+Tujuan: Memastikan hanya pemilik sah yang dapat mengunduh file.
 
-8. Keamanan Sesi (Secure Session)
-Perlindungan sesi browser pengguna.
-HttpOnly Cookies: Cookie sesi tidak bisa diakses lewat JavaScript (Anti-XSS).
-Anti-Back Button: Setelah logout, tombol "Back" pada browser tidak akan menampilkan halaman dashboard lagi (Halaman dilindungi decorator @login_required & header no-cache).
-Tujuan: Menjaga kerahasiaan data jika komputer digunakan secara bergantian di tempat umum.
+8) Access Control untuk Aksi Destruktif (Delete Protection / Sudo Mode)
+Mekanisme: Penghapusan file tidak hanya mengandalkan sesi login, tetapi juga meminta konfirmasi tambahan berupa input ulang password (reauth) sebelum delete dieksekusi.
+Tujuan: Mencegah penghapusan tidak sengaja dan mengurangi risiko saat sesi dibajak/ditinggal terbuka.
 
+9) Manajemen Rahasia (No Hardcoded Secrets)
+Mekanisme: SECRET_KEY dan konfigurasi sensitif tidak ditulis di source code, tetapi diletakkan di .env/environment variables (misalnya via python-dotenv).
+Tujuan: Mencegah kebocoran secret jika source code tersebar atau dipublikasikan.
 
+10) Tidak Menyimpan Password Plaintext
+Mekanisme: Database hanya menyimpan hash satu arah (format PBKDF2/argon2), bukan password asli.
+Tujuan: Mengurangi dampak jika database dicuri.
+
+11) Keamanan Sesi (Secure Session Cookie)
+Mekanisme: Cookie sesi sessionid diberi flag HttpOnly sehingga tidak dapat diakses oleh JavaScript (menekan risiko pencurian sesi via XSS).
+Tujuan: Melindungi token sesi dari pencurian berbasis script.
+
+12) Session Timeout & Auto Logout
+Mekanisme: Sistem menerapkan idle timeout (misal 15 menit) dan sesi berakhir saat browser ditutup.
+Tujuan: Mengurangi risiko akun tetap terbuka pada perangkat publik atau dipakai bergantian.
+
+13) Proteksi Halaman (Authentication Gate)
+Mekanisme: Halaman sensitif (dashboard, download, delete) dilindungi @login_required/pemeriksaan autentikasi sehingga user yang belum login tidak bisa mengakses.
+Tujuan: Memastikan data hanya bisa diakses setelah autentikasi.
+
+14) Audit Log
+Mekanisme: Aktivitas penting seperti login sukses/gagal, akses file, dan penghapusan dicatat pada log server.
+Tujuan: Mendukung monitoring, troubleshooting, dan kebutuhan forensik jika terjadi insiden.
+
+15) Prinsip Least Privilege pada Akses Data
+Mekanisme: Query dan operasi file selalu “dibatasi konteks user” (scope per-user). Sistem tidak menyediakan endpoint yang mengambil semua data tanpa filter kepemilikan.
+Tujuan: Meminimalkan dampak jika terjadi kesalahan akses atau percobaan enumerasi data.
