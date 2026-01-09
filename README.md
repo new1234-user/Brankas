@@ -63,26 +63,22 @@ Aplikasi ini telah menerapkan standar keamanan wajib untuk memitigasi risiko ser
 * Mekanisme: SECRET_KEY dan konfigurasi sensitif tidak ditulis di source code, tetapi diletakkan di .env/environment variables (via python-dotenv).
 * Tujuan: Mencegah kebocoran secret jika source code tersebar atau dipublikasikan.
 
-10) Tidak Menyimpan Password Plaintext
-* Mekanisme: Database hanya menyimpan hash satu arah (format PBKDF2/argon2), bukan password dalam plaintext.
-* Tujuan: Mengurangi dampak jika database dicuri.
-
-11) Keamanan Sesi (Secure Session Cookie)
+10) Keamanan Sesi (Secure Session Cookie)
 * Mekanisme: Cookie sesi sessionid diberi flag HttpOnly sehingga tidak dapat diakses oleh JavaScript sehingga menekan risiko pencurian sesi via XSS.
 * Tujuan: Melindungi token sesi dari pencurian berbasis script.
 
-12) Session Timeout & Auto Logout
+11) Session Timeout & Auto Logout
 * Mekanisme: Sistem menerapkan idle timeout (misal 15 menit) dan sesi berakhir saat browser ditutup.
 * Tujuan: Mengurangi risiko akun tetap terbuka pada perangkat publik atau dipakai bergantian.
 
-13) Proteksi Halaman (Authentication Gate)
+12) Proteksi Halaman (Authentication Gate)
 * Mekanisme: Halaman sensitif (dashboard, download, delete) dilindungi @login_required/pemeriksaan autentikasi sehingga user yang belum login tidak bisa mengakses.
 * Tujuan: Memastikan data hanya bisa diakses setelah autentikasi.
 
-14) Audit Log
+13) Audit Log
 * Mekanisme: Aktivitas penting seperti login sukses/gagal, akses file, dan penghapusan dicatat pada log server.
 * Tujuan: Mendukung monitoring, troubleshooting, dan kebutuhan forensik jika terjadi insiden.
 
-15) Prinsip Least Privilege pada Akses Data
+14) Prinsip Least Privilege pada Akses Data
 * Mekanisme: Query dan operasi file selalu “dibatasi konteks user” (scope per-user). Sistem tidak menyediakan endpoint yang mengambil semua data tanpa filter kepemilikan.
 * Tujuan: Meminimalkan dampak jika terjadi kesalahan akses atau percobaan enumerasi data.
