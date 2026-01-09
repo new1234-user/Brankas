@@ -29,46 +29,46 @@ Buka terminal pada folder yang berisi file `manage.py`.
 Aplikasi ini telah menerapkan standar keamanan wajib untuk memitigasi risiko serangan web umum:
 1) Password Hashing (Tidak Ada Plaintext)
 * Mekanisme: Registrasi dan login memakai form bawaan Django (UserCreationForm dan AuthenticationForm) yang menyimpan password dalam bentuk hash (PBKDF2/HMAC-SHA256 dan kompatibel Argon2), bukan teks asli.
-* Tujuan: Jika database bocor, password tidak bisa dibaca langsung.
+* Tujuan: Jika database mengalami kebocoran, password tidak bisa dibaca secara langsung.
 
 2) Proteksi CSRF (Cross-Site Request Forgery)
-* Mekanisme: Semua form POST (login, upload, delete) dilindungi CSRF Middleware dan token {% csrf_token %}. Request tanpa token valid akan ditolak.
-* Tujuan: Mencegah aksi berbahaya dipicu dari situs pihak ketiga tanpa izin user.
+* Mekanisme: Semua form POST (login, upload, delete) dilindungi CSRF Middleware dan token {% csrf_token %} Sehingga request tanpa token valid akan ditolak.
+* Tujuan: Mencegah attack dari pihak ketiga tanpa izin user.
 
 3) Input Validation (Anti SQL Injection & XSS)
-* Mekanisme: Validasi dilakukan lewat constraint pada Model (tipe data, panjang karakter) dan Django ORM (parameterized query). Payload seperti SQL injection dan <script>...</script> tidak dieksekusi dan diperlakukan sebagai teks.
-* Tujuan: Mencegah manipulasi query database (SQLi) dan eksekusi script berbahaya (XSS).
+* Mekanisme: Validasi dilakukan lewat constraint pada Model (tipe data, panjang karakter) dan Django ORM (parameterized query). Payload seperti SQL injection dan <script>...</script> tidak dieksekusi.
+* Tujuan: Mencegah manipulasi query database dan eksekusi script berbahaya (XSS).
 
 4) File Upload Sanitization (Whitelist Ekstensi + Batas Ukuran)
-* Mekanisme: Upload file dibatasi dengan whitelist ekstensi (dokumen/gambar) dan ukuran maksimal 5MB melalui validator pada FileField. File di luar ketentuan (misalnya .exe) ditolak.
-* Tujuan: Mencegah upload malware/webshell dan mengurangi risiko DoS lewat file besar.
+* Mekanisme: Upload file dibatasi dengan whitelist ekstensi (dokumen/gambar) dan ukuran file melalui validator. File di luar ketentuan (contoh .exe) akan ditolak.
+* Tujuan: Mencegah upload malware/webshell dan mengurangi risiko DoS melalui file besar.
 
 5) Sanitasi Nama File (Anti Webshell / Overwrite)
-* Mekanisme: Nama file yang diunggah tidak dipakai apa adanya, melainkan diubah menjadi nama aman/unik (misal berbasis UUID/random) agar tidak bisa menimpa file sistem atau “menyisipkan” nama berbahaya.
-* Tujuan: Mencegah overwriting file, path trick, dan mempersulit penyisipan webshell.
+* Mekanisme: Nama file diubah menjadi nama aman/unik (misal berbasis UUID/random) agar tidak bisa menimpa file sistem atau “menyisipkan” nama file yang berbahaya.
+* Tujuan: Mencegah overwriting file, path trick dan mempersulit penyisipan webshell.
 
 6) Privasi Data & Isolasi (Anti-IDOR / Object-Level Authorization)
-* Mekanisme: Data dashboard difilter berdasarkan request.user, sehingga user hanya melihat file miliknya. Saat akses detail/download/delete, sistem memverifikasi kepemilikan objek di backend. Akses file milik user lain diblok (umumnya dikembalikan 404 agar tidak bisa dienumerasi).
+* Mekanisme: Data dashboard difilter berdasarkan request.user, sehingga user hanya melihat file miliknya.
 * Tujuan: Mencegah user A mengakses file user B walaupun tahu URL/ID.
 
 7) Secure Download
-* Mekanisme: Sebelum file dikirim ke client, sistem melakukan pengecekan hak akses (owner check) secara real-time. Jika tidak berhak, request ditolak.
+* Mekanisme: Sebelum file dikirim ke client, sistem melakukan pengecekan hak akses (owner check) secara real-time.
 * Tujuan: Memastikan hanya pemilik sah yang dapat mengunduh file.
 
 8) Access Control untuk Aksi Destruktif (Delete Protection / Sudo Mode)
-* Mekanisme: Penghapusan file tidak hanya mengandalkan sesi login, tetapi juga meminta konfirmasi tambahan berupa input ulang password (reauth) sebelum delete dieksekusi.
-* Tujuan: Mencegah penghapusan tidak sengaja dan mengurangi risiko saat sesi dibajak/ditinggal terbuka.
+* Mekanisme: Penghapusan file tidak hanya mengandalkan sesi login, tetapi juga meminta konfirmasi tambahan berupa input ulang password sebelum delete dieksekusi.
+* Tujuan: Mencegah penghapusan tidak sengaja dan mengurangi risiko saat sesi dibajak atau ditinggal terbuka.
 
 9) Manajemen Rahasia (No Hardcoded Secrets)
-* Mekanisme: SECRET_KEY dan konfigurasi sensitif tidak ditulis di source code, tetapi diletakkan di .env/environment variables (misalnya via python-dotenv).
+* Mekanisme: SECRET_KEY dan konfigurasi sensitif tidak ditulis di source code, tetapi diletakkan di .env/environment variables (via python-dotenv).
 * Tujuan: Mencegah kebocoran secret jika source code tersebar atau dipublikasikan.
 
 10) Tidak Menyimpan Password Plaintext
-* Mekanisme: Database hanya menyimpan hash satu arah (format PBKDF2/argon2), bukan password asli.
+* Mekanisme: Database hanya menyimpan hash satu arah (format PBKDF2/argon2), bukan password dalam plaintext.
 * Tujuan: Mengurangi dampak jika database dicuri.
 
 11) Keamanan Sesi (Secure Session Cookie)
-* Mekanisme: Cookie sesi sessionid diberi flag HttpOnly sehingga tidak dapat diakses oleh JavaScript (menekan risiko pencurian sesi via XSS).
+* Mekanisme: Cookie sesi sessionid diberi flag HttpOnly sehingga tidak dapat diakses oleh JavaScript sehingga menekan risiko pencurian sesi via XSS.
 * Tujuan: Melindungi token sesi dari pencurian berbasis script.
 
 12) Session Timeout & Auto Logout
